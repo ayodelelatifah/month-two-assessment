@@ -1,0 +1,82 @@
+services:
+  # --- Phase 1: Backend Application ---
+  backend:
+    build: .
+    container_name: muchtodo-api
+    ports:
+      - "3000:3000"
+    volumes:
+      # This mount satisfies Viper's LoadConfig(".") requirement
+      - ./.env:/app/.env
+    environment:
+      # Redundant but safe: keeping these for AutomaticEnv fallback
+      - PORT=3000
+      - MONGO_URI=mongodb://root:example@mongodb:27017/much_todo_db?authSource=admin&replicaSet=rs0
+      - DB_NAME=much_todo_db
+      - REDIS_ADDR=redis:6379
+      - JWT_SECRET_KEY=secret_key_change_me_later
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - backend
+    restart: always
+
+  # --- Phase 1: MongoDB with Persistence and Replica Set ---
+  mongodb:
+    image: mongo:8.0
+    container_name: mongodb
+    user: "999:999"
+    command: ["--replSet", "rs0", "--bind_ip_all", "--keyFile", "/data/keyfile/mongodb.key"]
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=example
+    volumes:
+      - ./mongodb.key:/data/keyfile/mongodb.key
+      - mongo_data:/data/db
+      - mongodb_config:/data/configdb
+    healthcheck:
+      test: ["CMD", "mongosh", "-u", "root", "-p", "example", "--authenticationDatabase", "admin", "--eval", "try { rs.status().ok } catch (e) { rs.initiate({_id:'rs0',members:[{_id:0,host:'mongodb:27017'}]}); }", "--quiet"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    networks:
+      - backend
+    restart: unless-stopped
+
+  # --- Phase 1: Redis Cache ---
+  redis:
+    image: redis:alpine
+    container_name: redis
+    networks:
+      - backend
+    restart: always
+
+  # --- Phase 1: Database UI ---
+  mongo-express:
+    image: mongo-express
+    container_name: mongo-express
+    restart: always
+    ports:
+      - "8081:8081"
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=root
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=example
+      - ME_CONFIG_MONGODB_URL=mongodb://root:example@mongodb:27017/?authSource=admin&replicaSet=rs0
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - backend
+
+# --- Infrastructure Definitions ---
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  mongo_data:
+  mongodb_config:

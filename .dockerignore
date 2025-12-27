@@ -1,0 +1,30 @@
+# Version Control
+.git
+.gitignore
+
+# Local Environment & Secrets
+.env
+*.key
+*.pem
+mongodb.key
+
+# Build Binaries and Cache
+bin/
+obj/
+dist/
+vendor/
+.cache/
+__debug_bin
+*.exe
+*.test
+
+# Docker & CI/CD
+docker-compose.yaml
+docker-compose.override.yaml
+.github/
+.vscode/
+
+# Logs and Temp Files
+*.log
+tmp/
+mongodb.key
