@@ -30,3 +30,8 @@ Ensure your Kind cluster is running, then execute:
 
 ## 📝 Assessment Hurdles & Solutions
 Detailed documentation of challenges (permissions, networking, and authentication) can be found in my [Medium Article](YOUR_MEDIUM_LINK_HERE).
+
+## 📖 Detailed Walkthrough
+I have written a comprehensive article on Medium explaining the architecture, the deployment process, and the technical hurdles I overcame. 
+
+👉 **[Read the full article on Medium](https://medium.com/@ayodelelatifah/orchestrating-a-high-availability-golang-api-with-kubernetes-a-full-stack-containerization-journey-0796626dab63)**
